@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f5f8ff">
+  <title>A Birthday Celebration</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --blue: #83e7ff;
+      --rose: #ff78b5;
+      --gold: #ffe08a;
+      --ink: #f4f3ff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      overflow-x: hidden;
+      padding: 72px 16px 28px;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 18% 24%, rgba(131,231,255,.7) 0 1px, transparent 2px),
+        radial-gradient(circle at 78% 16%, rgba(255,255,255,.8) 0 1px, transparent 2px),
+        radial-gradient(circle at 82% 72%, rgba(255,120,181,.55) 0 1px, transparent 2px),
+        radial-gradient(ellipse at 50% 46%, #17234a 0%, #0b1128 52%, #080b1b 100%);
+      background-size: 85px 85px, 120px 120px, 160px 160px, auto;
+      font-family: Georgia, "Times New Roman", serif;
+    }
+
+    main {
+      position: relative;
+      z-index: 1;
+      width: min(100%, 620px);
+      text-align: center;
+    }
+
+    .moving-dots {
+      position: fixed;
+      z-index: 0;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .moving-dot {
+      position: absolute;
+      top: var(--top);
+      left: var(--left);
+      width: var(--size);
+      height: var(--size);
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 0 7px rgba(255,255,255,.85), 0 0 15px rgba(131,231,255,.45);
+      opacity: .5;
+      animation: drift-dot var(--duration) ease-in-out var(--delay) infinite alternate;
+    }
+
+    .photo-rail {
+      position: fixed;
+      z-index: 0;
+      left: 0;
+      width: 100%;
+      height: clamp(64px, 12vh, 108px);
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .photo-rail.top {
+      top: 10px;
+    }
+
+    .photo-rail.bottom {
+      bottom: 10px;
+    }
+
+    .photo-track {
+      display: flex;
+      width: max-content;
+      animation: photos-left 36s linear infinite;
+    }
+
+    .photo-rail.bottom .photo-track {
+      animation-name: photos-right;
+    }
+
+    .photo-set {
+      display: flex;
+      flex: none;
+    }
+
+    .photo-set img {
+      flex: 0 0 clamp(52px, calc((100vw - 64px) / 5), 150px);
+      width: clamp(52px, calc((100vw - 64px) / 5), 150px);
+      height: clamp(64px, 12vh, 108px);
+      border: 1px solid rgba(220, 239, 255, .9);
+      object-fit: cover;
+      opacity: .82;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, .35);
+    }
+
+    .bouquet {
+      position: relative;
+      width: min(84vw, 460px);
+      height: min(72vw, 390px);
+      margin: 4px auto;
+      isolation: isolate;
+    }
+
+    .message {
+      max-width: 600px;
+      margin: 0 auto 10px;
+      color: #e3e7f8;
+      font-size: clamp(16px, 2.2vw, 20px);
+      line-height: 1.5;
+      text-align: center;
+      text-shadow: 0 2px 14px rgba(131,231,255,.16);
+      text-wrap: balance;
+    }
+
+    .message em {
+      display: block;
+      margin-top: 5px;
+      color: var(--gold);
+      font-size: .94em;
+      font-style: italic;
+      letter-spacing: .035em;
+    }
+
+    .love-declaration {
+      display: block;
+      margin-top: 8px;
+      color: #b9ddf8;
+      font-family: Arial, sans-serif;
+      font-size: clamp(15px, 2.4vw, 20px);
+      letter-spacing: .08em;
+      text-shadow: 0 0 16px rgba(131, 231, 255, .45);
+    }
+
+    .stems {
+      position: absolute;
+      z-index: 0;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    .stem-path {
+      fill: none;
+      stroke: #70a879;
+      stroke-width: 2.4;
+      stroke-linecap: round;
+      opacity: .8;
+    }
+
+    .leaf-path {
+      fill: #79b283;
+      opacity: .85;
+    }
+
+    .flower-heads {
+      position: absolute;
+      z-index: 2;
+      inset: 0;
+    }
+
+    .flower-head {
+      position: absolute;
+      width: var(--flower-size);
+      height: var(--flower-height);
+      transform: translate(-50%, -50%) scale(0);
+      filter: drop-shadow(0 3px 4px rgba(0,0,0,.32));
+      animation: bloom-in .55s cubic-bezier(.2,.8,.2,1) var(--bloom-delay) forwards;
+    }
+
+    .flower-head.tulip {
+      clip-path: polygon(8% 18%, 32% 25%, 50% 0, 68% 25%, 92% 18%, 88% 62%, 74% 88%, 50% 100%, 26% 88%, 12% 62%);
+      background:
+        linear-gradient(90deg, rgba(20,75,145,.2), transparent 28% 72%, rgba(20,75,145,.2)),
+        linear-gradient(90deg, transparent 47%, rgba(255,255,255,.28) 50%, transparent 53%),
+        radial-gradient(ellipse at 50% 35%, rgba(255,255,255,.4), transparent 60%),
+        var(--petal);
+    }
+
+    .paper-flare {
+      position: absolute;
+      z-index: 2;
+      top: 56%;
+      width: 48%;
+      height: 28%;
+      background: linear-gradient(135deg, #d9efff, #8fc4ee 55%, #4f87c4);
+      filter: drop-shadow(0 6px 6px rgba(0,0,0,.18));
+    }
+
+    .paper-flare.left {
+      left: 5%;
+      clip-path: polygon(0 3%, 100% 42%, 79% 100%, 30% 74%);
+      transform: rotate(4deg);
+    }
+
+    .paper-flare.right {
+      right: 5%;
+      clip-path: polygon(100% 3%, 0 42%, 21% 100%, 70% 74%);
+      transform: rotate(-4deg);
+    }
+
+    .wrap {
+      position: absolute;
+      z-index: 3;
+      top: 64%;
+      left: 31%;
+      width: 38%;
+      height: 34%;
+      clip-path: polygon(8% 0, 92% 0, 100% 100%, 0 100%);
+      background: linear-gradient(100deg, #356fae, #b9ddf8 45%, #4e8ac8);
+      filter: drop-shadow(0 12px 12px rgba(0,0,0,.32));
+    }
+
+    .wrap::before {
+      content: "";
+      position: absolute;
+      top: 15%;
+      left: 0;
+      width: 100%;
+      height: 10px;
+      background: linear-gradient(90deg, #4a82bd, #d6edff, #3972b2);
+      box-shadow: 0 2px 6px rgba(78,35,43,.4);
+    }
+
+    .wrap::after {
+      content: "";
+      position: absolute;
+      top: 28%;
+      left: 50%;
+      width: 1px;
+      height: 68%;
+      background: rgba(255,255,255,.28);
+    }
+
+    .bow {
+      position: absolute;
+      z-index: 4;
+      top: 64%;
+      left: 50%;
+      width: 92px;
+      height: 92px;
+      transform: translateX(-50%);
+      filter: drop-shadow(0 4px 4px rgba(0,0,0,.28));
+    }
+
+    .bow-loop,
+    .bow-knot {
+      content: "";
+      position: absolute;
+      background: linear-gradient(145deg, #d9efff, #6ea8df);
+    }
+
+    .bow-loop {
+      top: 6px;
+      width: 42px;
+      height: 31px;
+    }
+
+    .bow-loop.left {
+      left: 0;
+      border-radius: 75% 20% 55% 35%;
+      transform: rotate(24deg);
+    }
+
+    .bow-loop.right {
+      right: 0;
+      border-radius: 20% 75% 35% 55%;
+      transform: rotate(-24deg);
+    }
+
+    .bow-knot {
+      z-index: 1;
+      top: 10px;
+      left: 37px;
+      width: 19px;
+      height: 19px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #e8f6ff, #4d86c4 75%);
+      box-shadow: inset 0 1px 3px rgba(255,255,255,.65);
+    }
+
+    .ribbon-tail {
+      position: absolute;
+      top: 24px;
+      width: 25px;
+      height: 66px;
+      background: linear-gradient(90deg, #3975b7, #cce8ff, #3975b7);
+      clip-path: polygon(0 0, 100% 0, 85% 100%, 50% 82%, 12% 100%);
+    }
+
+    .ribbon-tail.left {
+      left: 20px;
+      transform: rotate(8deg);
+    }
+
+    .ribbon-tail.right {
+      right: 20px;
+      transform: rotate(-8deg);
+    }
+
+    .back-link {
+      position: fixed;
+      z-index: 5;
+      top: calc(clamp(64px, 12vh, 108px) + 28px);
+      left: 24px;
+      display: inline-block;
+      margin: 0;
+      padding: 11px 18px;
+      border: 1px solid rgba(131,231,255,.42);
+      border-radius: 999px;
+      color: var(--blue);
+      font-family: Arial, sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: background .2s ease, transform .2s ease;
+    }
+
+    .back-link:hover {
+      transform: translateY(-2px);
+      background: rgba(131,231,255,.1);
+    }
+
+    @media (max-width: 520px) {
+      body {
+        padding: 64px 14px 24px;
+      }
+
+      .back-link {
+        top: calc(clamp(64px, 12vh, 108px) + 28px);
+        left: 12px;
+        padding: 9px 14px;
+        font-size: 12px;
+      }
+    }
+
+    @keyframes bloom-in {
+      to { transform: translate(-50%, -50%) scale(1); }
+    }
+
+    @keyframes drift-dot {
+      to {
+        transform: translate3d(var(--drift), -22px, 0) scale(1.35);
+        opacity: .95;
+      }
+    }
+
+    @keyframes photos-left {
+      to { transform: translateX(var(--marquee-offset)); }
+    }
+
+    @keyframes photos-right {
+      from { transform: translateX(var(--marquee-offset)); }
+      to { transform: translateX(0); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="moving-dots" id="movingDots" aria-hidden="true"></div>
+  <div class="photo-rail top" aria-hidden="true"></div>
+  <div class="photo-rail bottom" aria-hidden="true"></div>
+  <main>
+    <p class="message">
+      Love, thank you kaayo for giving me another chance, maski naa koy mga dili maayo nga nabuhat.
+      Unta you will still stay even sa pinaka-worst day natong duha.
+      <em>We fight, we fix, we stay.</em>
+      <strong class="love-declaration">I LOVE YOU ALWAYS ASAWA KO ❤️</strong>
+    </p>
+    <div class="bouquet" aria-hidden="true">
+      <svg class="stems" viewBox="0 0 500 440" preserveAspectRatio="none">
+        <g id="stemPaths"></g>
+      </svg>
+      <div class="flower-heads" id="flowerHeads"></div>
+      <div class="paper-flare left"></div>
+      <div class="paper-flare right"></div>
+      <div class="wrap"></div>
+      <div class="bow">
+        <span class="bow-loop left"></span>
+        <span class="bow-loop right"></span>
+        <span class="bow-knot"></span>
+        <span class="ribbon-tail left"></span>
+        <span class="ribbon-tail right"></span>
+      </div>
+    </div>
+    <a class="back-link" href="index.html"><span aria-hidden="true">←</span> Back</a>
+  </main>
+
+  <script>
+    const movingDots = document.getElementById("movingDots");
+
+    const photoRows = [
+      { position: "top", images: ["1.png", "2.png", "3.png", "4.png", "5.png"] },
+      { position: "bottom", images: ["6.png", "7.png", "8.png", "9.png", "1.png"] }
+    ];
+
+    photoRows.forEach(({ position, images }) => {
+      const rail = document.querySelector(`.photo-rail.${position}`);
+      const track = document.createElement("div");
+      track.className = "photo-track";
+
+      const set = document.createElement("div");
+      set.className = "photo-set";
+      images.forEach((source) => {
+        const image = document.createElement("img");
+        image.src = source;
+        image.alt = "";
+        image.draggable = false;
+        set.appendChild(image);
+      });
+      track.appendChild(set);
+
+      const fillPhotoTrack = () => {
+        const setWidth = set.getBoundingClientRect().width;
+        const setCount = Math.ceil(window.innerWidth / setWidth) + 1;
+
+        while (track.children.length < setCount) {
+          track.appendChild(set.cloneNode(true));
+        }
+        while (track.children.length > setCount) {
+          track.lastElementChild.remove();
+        }
+
+        track.style.setProperty("--marquee-offset", `${-setWidth}px`);
+      };
+
+      rail.appendChild(track);
+      fillPhotoTrack();
+      window.addEventListener("resize", fillPhotoTrack);
+    });
+
+    for (let index = 0; index < 42; index += 1) {
+      const dot = document.createElement("span");
+      dot.className = "moving-dot";
+      dot.style.setProperty("--top", `${Math.random() * 100}%`);
+      dot.style.setProperty("--left", `${Math.random() * 100}%`);
+      dot.style.setProperty("--size", `${2 + Math.random() * 3}px`);
+      dot.style.setProperty("--duration", `${4 + Math.random() * 5}s`);
+      dot.style.setProperty("--delay", `${-Math.random() * 12}s`);
+      dot.style.setProperty("--drift", `${Math.round(Math.random() * 32 - 16)}px`);
+      movingDots.appendChild(dot);
+    }
+
+    const flowerHeads = document.getElementById("flowerHeads");
+    const stemPaths = document.getElementById("stemPaths");
+    const flowerRows = [4, 8, 12, 14, 14, 14, 12, 10, 6, 6];
+    const rowWidths = [140, 230, 315, 380, 420, 430, 405, 355, 280, 190];
+    const flowerPalette = [
+      "#4f91cf", "#72b5ed", "#9acdf3", "#dcefff",
+      "#3676bd", "#829cf0", "#f3f9ff"
+    ];
+    const svgNamespace = "http://www.w3.org/2000/svg";
+    let flowerIndex = 0;
+
+    flowerRows.forEach((count, row) => {
+      const y = 36 + row * 20;
+      const rowWidth = rowWidths[row];
+      const rowLeft = (500 - rowWidth) / 2;
+
+      for (let column = 0; column < count; column += 1) {
+        const x = rowLeft + rowWidth * ((column + .5) / count);
+        const petal = flowerPalette[(flowerIndex * 3 + row) % flowerPalette.length];
+        const stem = document.createElementNS(svgNamespace, "path");
+        stem.setAttribute("class", "stem-path");
+        stem.setAttribute("d", `M ${x} ${y + 8} C ${x} ${y + 78}, 250 276, 250 356`);
+        stemPaths.appendChild(stem);
+
+        if (flowerIndex % 2 === 0) {
+          const direction = flowerIndex % 4 === 0 ? 1 : -1;
+          const leafX = x + (250 - x) * .55;
+          const leafY = y + 100;
+          const leaf = document.createElementNS(svgNamespace, "path");
+          leaf.setAttribute("class", "leaf-path");
+          leaf.setAttribute("d", `M ${leafX} ${leafY} q ${direction * 13} -15 ${direction * 27} -4 q ${-direction * 6} 16 ${-direction * 27} 4 Z`);
+          stemPaths.appendChild(leaf);
+        }
+
+        const flower = document.createElement("span");
+        flower.className = "flower-head tulip";
+        flower.style.left = `${x / 5}%`;
+        flower.style.top = `${y / 4.4}%`;
+        const size = 22 + (flowerIndex % 4) * 2;
+        flower.style.setProperty("--flower-size", `${size}px`);
+        flower.style.setProperty("--flower-height", `${size + 8}px`);
+        flower.style.setProperty("--petal", petal);
+        flower.style.setProperty("--bloom-delay", `${(flowerIndex % 20) * .025}s`);
+        flowerHeads.appendChild(flower);
+        flowerIndex += 1;
+      }
+    });
+  </script>
+</body>
+</html>
